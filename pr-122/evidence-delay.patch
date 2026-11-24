@@ -1,0 +1,67 @@
+diff --git a/src/rn/native/GatenAnki.ts b/src/rn/native/GatenAnki.ts
+index e5a621d..7747b0b 100644
+--- a/src/rn/native/GatenAnki.ts
++++ b/src/rn/native/GatenAnki.ts
+@@ -116,9 +116,12 @@ interface GatenAnkiNative {
+ 
+ const GatenAnki = NativeModules.GatenAnki as GatenAnkiNative;
+ 
++// EVIDENCE-ONLY: hold local reads ~8 s so loading states stay on screen. Never commit.
++const evidenceDelay = <T,>(p: Promise<T>): Promise<T> => new Promise<void>((r) => setTimeout(r, 8000)).then(() => p);
++
+ /** Whether review can run here. */
+ export function status(): Promise<AnkiStatus> {
+-  return GatenAnki.status();
++  return evidenceDelay(GatenAnki.status());
+ }
+ 
+ /** The deck "Add to Anki" exports into, the deck picker's default selection. */
+@@ -128,7 +131,7 @@ export function getConfiguredDeckName(): Promise<string> {
+ 
+ /** Every deck AnkiDroid has. */
+ export function decks(): Promise<AnkiDeckResult[]> {
+-  return GatenAnki.decks();
++  return evidenceDelay(GatenAnki.decks());
+ }
+ 
+ /**
+@@ -139,7 +142,7 @@ export function decks(): Promise<AnkiDeckResult[]> {
+  * rollover hour, not local midnight), so the same card graded twice in a day counts once.
+  */
+ export function counts(queries: string[]): Promise<Array<number | null>> {
+-  return GatenAnki.counts(queries);
++  return evidenceDelay(GatenAnki.counts(queries));
+ }
+ 
+ /** The card AnkiDroid has queued for the deck, or nothing due. */
+@@ -185,7 +188,7 @@ export function addNote(card: {
+ 
+ /** The saved export settings, with their validation verdict. */
+ export function getPreferences(): Promise<AnkiPreferencesResult> {
+-  return GatenAnki.getPreferences();
++  return evidenceDelay(GatenAnki.getPreferences());
+ }
+ 
+ /**
+diff --git a/src/rn/native/GatenDict.ts b/src/rn/native/GatenDict.ts
+index 21a4c91..60e160a 100644
+--- a/src/rn/native/GatenDict.ts
++++ b/src/rn/native/GatenDict.ts
+@@ -57,7 +57,7 @@ export function search(query: string): Promise<SearchResult[]> {
+  * word.
+  */
+ export function lookupExamples(term: string): Promise<SentenceExample[]> {
+-  return GatenDict.examples(term);
++  return new Promise<void>((r) => setTimeout(r, 8000)).then(() => GatenDict.examples(term)); // EVIDENCE-ONLY delay
+ }
+ 
+ /** True when `query` is something the dictionary can be asked about: Japanese, or full romaji. */
+@@ -67,7 +67,7 @@ export function isSearchable(query: string): Promise<boolean> {
+ 
+ /** The twelve most recently opened word entries, kept on this device. */
+ export function recentLookups(): Promise<SearchResult[]> {
+-  return GatenDict.recentLookups();
++  return new Promise<void>((r) => setTimeout(r, 8000)).then(() => GatenDict.recentLookups()); // EVIDENCE-ONLY delay
+ }
+ 
+ /** Records an entry when its word-detail page opens. */
